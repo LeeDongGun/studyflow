@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📚 학습 플로우 모음집</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            border-left: 5px solid #667eea;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+        }
+        
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+        
+        .card h3 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 1.3em;
+        }
+        
+        .card p {
+            color: #666;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+        
+        .card a {
+            display: inline-block;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .card a:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .stats {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            margin-top: 30px;
+        }
+        
+        .stats h3 {
+            margin-bottom: 10px;
+        }
+        
+        .coming-soon {
+            opacity: 0.7;
+            border-left-color: #ccc;
+        }
+        
+        .coming-soon a {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .emoji {
+            font-size: 1.5em;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📚 학습 플로우 모음집</h1>
+            <p>Claude와 함께 만든 인터랙티브 학습 자료들</p>
+        </div>
+        
+        <div class="grid">
+            <!-- 기존 플로우들 -->
+            <div class="card">
+                <h3><span class="emoji">🔐</span>SSL/TLS 키 교환</h3>
+                <p>SSL/TLS 프로토콜의 키 교환 과정을 시각적으로 설명하는 인터랙티브 다이어그램</p>
+                <a href="ssl-tls-demo.html">보러가기</a>
+            </div>
+            
+            <div class="card">
+                <h3><span class="emoji">🌐</span>네트워크 보안</h3>
+                <p>네트워크 보안의 기본 개념과 공격 방어 메커니즘 설명</p>
+                <a href="network-security.html">보러가기</a>
+            </div>
+            
+            <div class="card">
+                <h3><span class="emoji">🔑</span>암호화 알고리즘</h3>
+                <p>대칭키, 비대칭키 암호화의 원리와 실제 구현 과정</p>
+                <a href="encryption-algorithms.html">보러가기</a>
+            </div>
+            
+            <div class="card">
+                <h3><span class="emoji">📜</span>디지털 인증서</h3>
+                <p>PKI 구조와 디지털 인증서의 발급, 검증 과정 설명</p>
+                <a href="digital-certificates.html">보러가기</a>
+            </div>
+            
+            <!-- 새로 추가할 플로우들 -->
+            <div class="card">
+                <h3><span class="emoji">🔥</span>방화벽 구조</h3>
+                <p>네트워크 방화벽의 종류와 패킷 필터링 과정을 시각화</p>
+                <a href="firewall-structure.html">보러가기</a>
+            </div>
+            
+            <div class="card">
+                <h3><span class="emoji">🌍</span>VPN 작동원리</h3>
+                <p>가상 사설망의 터널링과 암호화 과정을 단계별로 설명</p>
+                <a href="vpn-process.html">보러가기</a>
+            </div>
+            
+            <!-- 앞으로 추가할 예정 -->
+            <div class="card coming-soon">
+                <h3><span class="emoji">⚡</span>DDoS 공격과 방어</h3>
+                <p>분산 서비스 거부 공격의 원리와 대응 방안 (준비중)</p>
+                <a href="#" onclick="return false;">준비중</a>
+            </div>
+            
+            <div class="card coming-soon">
+                <h3><span class="emoji">🛡️</span>침입 탐지 시스템</h3>
+                <p>IDS/IPS의 동작 원리와 탐지 알고리즘 설명 (준비중)</p>
+                <a href="#" onclick="return false;">준비중</a>
+            </div>
+        </div>
+        
+        <div class="stats">
+            <h3>📊 현재 상태</h3>
+            <p>총 <strong>6개</strong> 플로우 | 최근 업데이트: <span id="lastUpdate"></span></p>
+        </div>
+    </div>
+    
+    <script>
+        // 현재 날짜 표시
+        document.getElementById('lastUpdate').textContent = new Date().toLocaleDateString('ko-KR');
+    </script>
+</body>
+</html>
