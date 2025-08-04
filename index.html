@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>자동 생성 목차</title>
+    <title>StudyFlow - HTML 파일 목록</title>
     <style>
         * {
             margin: 0;
@@ -12,57 +12,112 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
             min-height: 100vh;
             padding: 20px;
+            line-height: 1.6;
         }
 
         .container {
             max-width: 1200px;
             margin: 0 auto;
             background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 
+                0 32px 64px rgba(0, 0, 0, 0.12),
+                0 8px 32px rgba(102, 126, 234, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
         }
 
         h1 {
-            text-align: center;
-            color: #333;
-            margin-bottom: 10px;
-            font-size: 2.5em;
-            background: linear-gradient(45deg, #667eea, #764ba2);
+            font-size: 3rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #667eea, #764ba2, #f093fb);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
+            margin-bottom: 12px;
+            letter-spacing: -0.02em;
         }
 
         .subtitle {
-            text-align: center;
-            color: #666;
-            margin-bottom: 30px;
-            font-size: 1.1em;
+            color: #64748b;
+            font-size: 1.125rem;
+            font-weight: 500;
+        }
+
+        .stats-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+            padding: 20px 24px;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(240, 147, 251, 0.1));
+            border-radius: 16px;
+            border: 1px solid rgba(102, 126, 234, 0.2);
+        }
+
+        .stats-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .stats-badge {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.875rem;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .refresh-btn {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+
+        .refresh-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
+        }
+
+        .refresh-btn:active {
+            transform: translateY(0);
         }
 
         .loading {
             text-align: center;
-            padding: 40px;
-            color: #666;
-            font-size: 1.1em;
+            padding: 60px 20px;
         }
 
-        .spinner {
-            display: inline-block;
-            width: 40px;
-            height: 40px;
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #667eea;
+        .loading-spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid rgba(102, 126, 234, 0.2);
+            border-left: 4px solid #667eea;
             border-radius: 50%;
             animation: spin 1s linear infinite;
-            margin-right: 15px;
-            vertical-align: middle;
+            margin: 0 auto 16px;
         }
 
         @keyframes spin {
@@ -70,206 +125,331 @@
             100% { transform: rotate(360deg); }
         }
 
+        .loading-text {
+            color: #64748b;
+            font-size: 1.125rem;
+            font-weight: 500;
+        }
+
         .file-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 24px;
             margin-top: 20px;
         }
 
         .file-card {
             background: white;
-            border-radius: 15px;
-            padding: 25px;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s ease;
-            border: 2px solid transparent;
+            border-radius: 20px;
+            padding: 28px;
+            box-shadow: 
+                0 4px 16px rgba(0, 0, 0, 0.08),
+                0 1px 4px rgba(0, 0, 0, 0.04);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            position: relative;
+            overflow: hidden;
             opacity: 0;
             transform: translateY(20px);
-            animation: fadeInUp 0.6s ease forwards;
+            animation: slideUp 0.6s ease forwards;
+        }
+
+        .file-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2, #f093fb);
+            opacity: 0;
+            transition: opacity 0.3s ease;
         }
 
         .file-card:hover {
             transform: translateY(-8px);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-            border-color: #667eea;
+            box-shadow: 
+                0 20px 40px rgba(0, 0, 0, 0.12),
+                0 8px 32px rgba(102, 126, 234, 0.15);
+            border-color: rgba(102, 126, 234, 0.3);
         }
 
-        .file-card h3 {
-            color: #333;
-            margin-bottom: 12px;
-            font-size: 1.3em;
-            display: flex;
-            align-items: center;
-            gap: 10px;
+        .file-card:hover::before {
+            opacity: 1;
         }
 
         .file-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 16px;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .file-icon svg {
             width: 24px;
             height: 24px;
-            fill: #667eea;
+            fill: white;
         }
 
-        .file-card .filename {
-            color: #888;
-            font-size: 0.9em;
-            font-family: 'Courier New', monospace;
-            margin-bottom: 15px;
-            padding: 5px 10px;
-            background: #f8f9fa;
+        .file-card h3 {
+            color: #1e293b;
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+
+        .filename {
+            color: #64748b;
+            font-size: 0.875rem;
+            font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+            background: rgba(102, 126, 234, 0.1);
+            padding: 4px 12px;
             border-radius: 8px;
             display: inline-block;
+            margin-bottom: 16px;
+            border: 1px solid rgba(102, 126, 234, 0.2);
         }
 
-        .file-card p {
-            color: #666;
-            font-size: 0.95em;
-            line-height: 1.5;
+        .file-description {
+            color: #475569;
+            font-size: 0.9375rem;
             margin-bottom: 20px;
+            line-height: 1.6;
         }
 
-        .file-card a {
+        .file-link {
+            background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
-            background: linear-gradient(45deg, #667eea, #764ba2);
             text-decoration: none;
             font-weight: 600;
-            padding: 12px 20px;
-            border-radius: 25px;
+            padding: 12px 24px;
+            border-radius: 12px;
             transition: all 0.3s ease;
-            display: inline-block;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9375rem;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
         }
 
-        .file-card a:hover {
+        .file-link:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
         }
 
-        .stats {
+        .file-link svg {
+            width: 16px;
+            height: 16px;
+            fill: currentColor;
+        }
+
+        .empty-state {
             text-align: center;
-            margin-bottom: 20px;
-            padding: 15px;
-            background: rgba(102, 126, 234, 0.1);
-            border-radius: 15px;
-            color: #495057;
+            padding: 80px 20px;
+            color: #64748b;
         }
 
-        .error-card {
-            background: #f8d7da;
-            border: 2px solid #f5c6cb;
-            color: #721c24;
-            padding: 20px;
-            border-radius: 15px;
+        .empty-state .emoji {
+            font-size: 4rem;
+            margin-bottom: 16px;
+            display: block;
+        }
+
+        .empty-state h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #374151;
+        }
+
+        .empty-state p {
+            font-size: 1rem;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .error-state {
+            background: linear-gradient(135deg, #fef2f2, #fee2e2);
+            border: 1px solid #fecaca;
+            border-radius: 16px;
+            padding: 24px;
             text-align: center;
-            margin: 20px 0;
+            color: #dc2626;
         }
 
-        @keyframes fadeInUp {
+        .repo-info {
+            text-align: center;
+            margin-bottom: 24px;
+            padding: 16px;
+            background: rgba(102, 126, 234, 0.05);
+            border-radius: 12px;
+            border: 1px solid rgba(102, 126, 234, 0.1);
+        }
+
+        .repo-link {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .repo-link:hover {
+            text-decoration: underline;
+        }
+
+        @keyframes slideUp {
             to {
                 opacity: 1;
                 transform: translateY(0);
             }
         }
 
-        .refresh-btn {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            background: linear-gradient(45deg, #28a745, #20c997);
-            color: white;
-            border: none;
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            cursor: pointer;
-            font-size: 24px;
-            box-shadow: 0 8px 25px rgba(40, 167, 69, 0.3);
-            transition: all 0.3s ease;
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
         }
 
-        .refresh-btn:hover {
-            transform: scale(1.1) rotate(180deg);
-            box-shadow: 0 12px 30px rgba(40, 167, 69, 0.4);
+        .loading-text {
+            animation: pulse 2s ease-in-out infinite;
         }
 
         @media (max-width: 768px) {
             .container {
-                padding: 20px;
+                padding: 24px;
                 margin: 10px;
+                border-radius: 20px;
             }
             
             h1 {
-                font-size: 2em;
+                font-size: 2.25rem;
             }
             
             .file-grid {
                 grid-template-columns: 1fr;
+                gap: 16px;
+            }
+            
+            .stats-container {
+                flex-direction: column;
+                gap: 16px;
+                text-align: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+            
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 1.875rem;
             }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>📚 사이트 목차</h1>
-        <p class="subtitle">자동으로 업데이트되는 페이지 목록</p>
-        
-        <div id="stats" class="stats">
-            <div class="spinner"></div>
-            파일을 검색하고 있습니다...
+        <div class="header">
+            <h1>📚 StudyFlow</h1>
+            <p class="subtitle">동적으로 생성되는 HTML 파일 목록</p>
+        </div>
+
+        <div class="repo-info">
+            <a href="https://github.com/LeeDongGun/studyflow" class="repo-link" target="_blank">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                </svg>
+                GitHub Repository
+            </a>
         </div>
         
-        <div id="fileList" class="file-grid"></div>
+        <div class="stats-container">
+            <div class="stats-info">
+                <div id="stats-badge" class="stats-badge">검색 중...</div>
+                <span id="last-updated" style="color: #64748b; font-size: 0.875rem;"></span>
+            </div>
+            <button class="refresh-btn" onclick="fetchFiles()" id="refresh-button">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
+                </svg>
+                새로고침
+            </button>
+        </div>
+        
+        <div id="loading" class="loading" style="display: none;">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">GitHub에서 파일 목록을 가져오는 중...</div>
+        </div>
+        
+        <div id="file-list" class="file-grid"></div>
     </div>
 
-    <button class="refresh-btn" onclick="scanFiles()" title="새로고침">
-        🔄
-    </button>
-
     <script>
-        // 검색할 파일 패턴들 (필요에 따라 수정 가능)
-        const FILE_PATTERNS = [
-            // 알파벳 + 숫자 조합
-            ...Array.from({length: 26}, (_, i) => String.fromCharCode(97 + i) + '.html'), // a.html ~ z.html
-            ...Array.from({length: 100}, (_, i) => `page${i + 1}.html`), // page1.html ~ page100.html
-            ...Array.from({length: 50}, (_, i) => `${String.fromCharCode(97 + i % 26)}${Math.floor(i / 26) + 1}.html`), // a1.html, b1.html 등
-            
-            // 일반적인 페이지 이름들
-            'about.html', 'contact.html', 'portfolio.html', 'projects.html', 'blog.html',
-            'services.html', 'gallery.html', 'news.html', 'events.html', 'team.html',
-            'home.html', 'main.html', 'intro.html', 'info.html', 'help.html',
-            
-            // 번호가 있는 파일들
-            ...Array.from({length: 20}, (_, i) => `${i + 1}.html`), // 1.html ~ 20.html
-            ...Array.from({length: 20}, (_, i) => `doc${i + 1}.html`), // doc1.html ~ doc20.html
-        ];
+        const repoOwner = 'LeeDongGun';
+        const repoName = 'studyflow';
+        const apiUrl = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/`;
+        
+        let isLoading = false;
+        let fileCount = 0;
 
-        let foundFiles = [];
-        let checkedCount = 0;
-        let totalToCheck = FILE_PATTERNS.length;
-
-        async function checkFileExists(filename) {
-            try {
-                const response = await fetch(filename, { 
-                    method: 'HEAD',
-                    cache: 'no-cache'
-                });
-                return response.ok;
-            } catch (error) {
-                return false;
-            }
+        function showLoading() {
+            isLoading = true;
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('file-list').style.display = 'none';
+            document.getElementById('refresh-button').disabled = true;
+            document.getElementById('stats-badge').textContent = '검색 중...';
         }
 
-        async function extractFileInfo(filename) {
+        function hideLoading() {
+            isLoading = false;
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('file-list').style.display = 'grid';
+            document.getElementById('refresh-button').disabled = false;
+        }
+
+        function updateStats() {
+            const now = new Date();
+            const timeString = now.toLocaleString('ko-KR', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            
+            document.getElementById('stats-badge').textContent = `${fileCount}개 파일`;
+            document.getElementById('last-updated').textContent = `마지막 업데이트: ${timeString}`;
+        }
+
+        async function extractFileMetadata(filename) {
             try {
-                const response = await fetch(filename, { cache: 'no-cache' });
-                if (!response.ok) return null;
+                const response = await fetch(`./${filename}`, { 
+                    method: 'GET',
+                    cache: 'no-cache'
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
                 
                 const content = await response.text();
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(content, 'text/html');
                 
                 // 제목 추출
-                let title = filename.replace('.html', '');
+                let title = filename.replace('.html', '').replace(/[-_]/g, ' ');
                 const titleElement = doc.querySelector('title');
                 if (titleElement && titleElement.textContent.trim()) {
                     title = titleElement.textContent.trim();
@@ -287,175 +467,144 @@
                     } else {
                         const firstP = doc.querySelector('p');
                         if (firstP && firstP.textContent.trim()) {
-                            description = firstP.textContent.trim().substring(0, 150) + '...';
+                            const text = firstP.textContent.trim();
+                            description = text.length > 120 ? text.substring(0, 120) + '...' : text;
                         } else {
-                            description = '페이지 설명이 없습니다.';
+                            description = '이 페이지에 대한 설명을 확인하세요.';
                         }
                     }
                 }
+
+                // 키워드 추출 (선택사항)
+                const keywords = doc.querySelector('meta[name="keywords"]');
+                const keywordList = keywords ? keywords.getAttribute('content').split(',').map(k => k.trim()) : [];
 
                 return {
                     filename,
                     title,
-                    description: description || '페이지 설명이 없습니다.',
-                    lastModified: response.headers.get('last-modified') || '알 수 없음'
+                    description: description || '설명이 없습니다.',
+                    keywords: keywordList
                 };
             } catch (error) {
-                console.error(`Error extracting info from ${filename}:`, error);
-                return null;
+                console.warn(`메타데이터 추출 실패 (${filename}):`, error);
+                return {
+                    filename,
+                    title: filename.replace('.html', '').replace(/[-_]/g, ' '),
+                    description: '페이지 내용을 확인하세요.',
+                    keywords: []
+                };
             }
         }
 
-        function updateStats() {
-            const statsDiv = document.getElementById('stats');
-            if (checkedCount < totalToCheck) {
-                const progress = Math.round((checkedCount / totalToCheck) * 100);
-                statsDiv.innerHTML = `
-                    <div class="spinner"></div>
-                    파일 검색 중... ${checkedCount}/${totalToCheck} (${progress}%)
-                `;
-            } else {
-                statsDiv.innerHTML = `
-                    ✅ 검색 완료! 총 ${foundFiles.length}개의 HTML 파일을 발견했습니다.
-                    <br><small>마지막 업데이트: ${new Date().toLocaleString('ko-KR')}</small>
-                `;
-            }
-        }
-
-        function renderFileList() {
-            const fileListDiv = document.getElementById('fileList');
+        function createFileCard(file, index) {
+            const card = document.createElement('div');
+            card.className = 'file-card';
+            card.style.animationDelay = `${index * 0.1}s`;
             
-            if (foundFiles.length === 0 && checkedCount >= totalToCheck) {
-                fileListDiv.innerHTML = `
-                    <div class="error-card">
-                        <h3>🔍 추가 HTML 파일을 찾을 수 없습니다</h3>
-                        <p>a.html, b.html 등의 파일을 루트 폴더에 업로드하면 자동으로 여기에 표시됩니다.</p>
-                        <p><small>새로고침 버튼(🔄)을 클릭하여 다시 검색할 수 있습니다.</small></p>
-                    </div>
-                `;
-                return;
-            }
-
-            // 파일명 순으로 정렬
-            const sortedFiles = [...foundFiles].sort((a, b) => {
-                // 숫자가 있는 파일명의 경우 자연스러운 정렬
-                return a.filename.localeCompare(b.filename, undefined, {numeric: true, sensitivity: 'base'});
-            });
-
-            fileListDiv.innerHTML = sortedFiles.map((file, index) => `
-                <div class="file-card" style="animation-delay: ${index * 0.1}s">
-                    <h3>
-                        <svg class="file-icon" viewBox="0 0 24 24">
-                            <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
-                        </svg>
-                        ${file.title}
-                    </h3>
-                    <div class="filename">${file.filename}</div>
-                    <p>${file.description}</p>
-                    <a href="${file.filename}" target="_blank">페이지 열기 →</a>
+            card.innerHTML = `
+                <div class="file-icon">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
+                    </svg>
                 </div>
-            `).join('');
+                <h3>${file.title}</h3>
+                <div class="filename">${file.filename}</div>
+                <p class="file-description">${file.description}</p>
+                <a href="${file.filename}" class="file-link" target="_blank">
+                    페이지 열기
+                    <svg viewBox="0 0 24 24">
+                        <path d="M14,3V5H17.59L7.76,14.83L9.17,16.24L19,6.41V10H21V3M19,19H5V5H12V3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V12H19V19Z"/>
+                    </svg>
+                </a>
+            `;
+            
+            return card;
         }
 
-        async function scanFiles() {
-            foundFiles = [];
-            checkedCount = 0;
+        async function fetchFiles() {
+            if (isLoading) return;
             
-            // 통계 초기화
-            updateStats();
+            showLoading();
             
-            // 파일 목록 초기화
-            document.getElementById('fileList').innerHTML = '';
-            
-            // 병렬로 파일 존재 여부 확인 (배치 처리로 성능 향상)
-            const batchSize = 10;
-            for (let i = 0; i < FILE_PATTERNS.length; i += batchSize) {
-                const batch = FILE_PATTERNS.slice(i, i + batchSize);
-                
-                await Promise.all(batch.map(async (filename) => {
-                    const exists = await checkFileExists(filename);
-                    checkedCount++;
-                    
-                    if (exists) {
-                        const fileInfo = await extractFileInfo(filename);
-                        if (fileInfo) {
-                            foundFiles.push(fileInfo);
-                            renderFileList(); // 실시간으로 업데이트
-                        }
-                    }
-                    
-                    updateStats();
-                }));
-                
-                // UI 업데이트를 위한 짧은 지연
-                await new Promise(resolve => setTimeout(resolve, 50));
-            }
-            
-            updateStats();
-        }
-
-        // GitHub API를 사용한 고급 검색 (선택사항)
-        async function scanWithGitHubAPI() {
             try {
-                // GitHub Pages URL에서 리포지토리 정보 추출
-                const currentUrl = window.location.href;
-                const match = currentUrl.match(/https:\/\/([^.]+)\.github\.io\/([^\/]+)/);
+                const response = await fetch(apiUrl);
+                if (!response.ok) {
+                    throw new Error(`GitHub API 오류: ${response.status}`);
+                }
                 
-                if (match) {
-                    const [, username, repo] = match;
-                    const apiUrl = `https://api.github.com/repos/${username}/${repo}/contents`;
+                const data = await response.json();
+                const fileListContainer = document.getElementById('file-list');
+                
+                // HTML 파일만 필터링 (index.html 제외)
+                const htmlFiles = data.filter(file => 
+                    file.name.endsWith('.html') && 
+                    file.name !== 'index.html' &&
+                    file.type === 'file'
+                );
+                
+                fileCount = htmlFiles.length;
+                
+                if (htmlFiles.length === 0) {
+                    fileListContainer.innerHTML = `
+                        <div class="empty-state">
+                            <span class="emoji">📝</span>
+                            <h3>아직 HTML 파일이 없습니다</h3>
+                            <p>GitHub 저장소에 HTML 파일을 업로드하면 자동으로 여기에 표시됩니다.</p>
+                        </div>
+                    `;
+                } else {
+                    fileListContainer.innerHTML = '';
                     
-                    const response = await fetch(apiUrl);
-                    if (response.ok) {
-                        const files = await response.json();
-                        const htmlFiles = files.filter(file => 
-                            file.name.endsWith('.html') && 
-                            file.name !== 'index.html' &&
-                            file.type === 'file'
-                        );
-                        
-                        console.log('GitHub API로 발견된 HTML 파일들:', htmlFiles);
-                        
-                        // 발견된 파일들 처리
-                        for (const file of htmlFiles) {
-                            const fileInfo = await extractFileInfo(file.name);
-                            if (fileInfo && !foundFiles.some(f => f.filename === file.name)) {
-                                foundFiles.push(fileInfo);
-                            }
-                        }
-                        
-                        renderFileList();
-                        updateStats();
-                        return true;
+                    // 파일명으로 자연스럽게 정렬
+                    htmlFiles.sort((a, b) => {
+                        return a.name.localeCompare(b.name, undefined, {
+                            numeric: true,
+                            sensitivity: 'base'
+                        });
+                    });
+                    
+                    // 각 파일의 메타데이터 추출 후 카드 생성
+                    for (let i = 0; i < htmlFiles.length; i++) {
+                        const file = htmlFiles[i];
+                        const metadata = await extractFileMetadata(file.name);
+                        const card = createFileCard(metadata, i);
+                        fileListContainer.appendChild(card);
                     }
                 }
+                
             } catch (error) {
-                console.log('GitHub API 검색 실패, 일반 검색을 계속합니다:', error);
+                console.error('파일 목록 가져오기 오류:', error);
+                document.getElementById('file-list').innerHTML = `
+                    <div class="error-state">
+                        <h3>⚠️ 오류가 발생했습니다</h3>
+                        <p>${error.message}</p>
+                        <p><small>GitHub API 접근에 문제가 있을 수 있습니다. 잠시 후 다시 시도해주세요.</small></p>
+                    </div>
+                `;
+                fileCount = 0;
+            } finally {
+                hideLoading();
+                updateStats();
             }
-            return false;
         }
 
-        // 페이지 로드 시 자동 실행
-        window.addEventListener('load', async () => {
-            // GitHub API 먼저 시도, 실패하면 일반 스캔
-            const githubSuccess = await scanWithGitHubAPI();
-            if (!githubSuccess) {
-                await scanFiles();
-            }
-        });
-
-        // 주기적 자동 새로고침 (선택사항 - 5분마다)
-        setInterval(async () => {
-            console.log('자동 새로고침 실행...');
-            await scanFiles();
-        }, 5 * 60 * 1000); // 5분마다
-
-        // 페이지가 다시 포커스될 때 새로고침
+        // 페이지 로드 시 실행
+        window.addEventListener('load', fetchFiles);
+        
+        // 페이지가 다시 포커스될 때 자동 새로고침
         document.addEventListener('visibilitychange', () => {
-            if (!document.hidden) {
-                scanFiles();
+            if (!document.hidden && !isLoading) {
+                fetchFiles();
             }
         });
+
+        // 주기적 자동 새로고침 (10분마다, 선택사항)
+        setInterval(() => {
+            if (!document.hidden && !isLoading) {
+                console.log('자동 새로고침 실행...');
+                fetchFiles();
+            }
+        }, 10 * 60 * 1000);
     </script>
 </body>
 </html>
