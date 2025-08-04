@@ -1,0 +1,531 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { Play, Plus, Trash2, RotateCcw, Trophy } from 'lucide-react';
+
+const PinballLotteryGame = () => {
+  const canvasRef = useRef(null);
+  const animationRef = useRef(null);
+  const [players, setPlayers] = useState([]);
+  const [newPlayerName, setNewPlayerName] = useState('');
+  const [gameState, setGameState] = useState('setup'); // setup, playing, finished
+  const [balls, setBalls] = useState([]);
+  const [finishedOrder, setFinishedOrder] = useState([]);
+  const [loser, setLoser] = useState(null);
+
+  // 게임 설정
+  const CANVAS_WIDTH = 800;
+  const CANVAS_HEIGHT = 600;
+  const BALL_RADIUS = 6;
+  const GRAVITY = 0.4;
+  const BOUNCE = 0.8;
+  const FRICTION = 0.99;
+
+  // 색상 팔레트
+  const colors = [
+    '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7',
+    '#DDA0DD', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E9'
+  ];
+
+  // 핀볼 핀들 생성 (삼각형 패턴)
+  const pins = [];
+  const startY = 120;
+  const pinSpacing = 60;
+  const rowHeight = 50;
+  
+  // 핀볼 핀들을 삼각형 패턴으로 배치
+  for (let row = 0; row < 8; row++) {
+    const pinsInRow = row + 3;
+    const rowWidth = (pinsInRow - 1) * pinSpacing;
+    const startX = (CANVAS_WIDTH - rowWidth) / 2;
+    
+    for (let col = 0; col < pinsInRow; col++) {
+      pins.push({
+        x: startX + col * pinSpacing,
+        y: startY + row * rowHeight,
+        radius: 6
+      });
+    }
+  }
+
+  // 슬롯 구분선들
+  const slots = Array.from({ length: 11 }, (_, i) => ({
+    x: 50 + i * 65,
+    y: CANVAS_HEIGHT - 80,
+    width: 60,
+    height: 70
+  }));
+
+  // 슬롯 번호 (1~10, 가운데가 가장 높은 확률)
+  const slotNumbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+
+  // 플레이어 추가
+  const addPlayer = () => {
+    if (newPlayerName.trim() && players.length < 10) {
+      const newPlayer = {
+        id: Date.now(),
+        name: newPlayerName.trim(),
+        color: colors[players.length % colors.length],
+        finished: false,
+        slotNumber: null
+      };
+      setPlayers([...players, newPlayer]);
+      setNewPlayerName('');
+    }
+  };
+
+  // 플레이어 제거
+  const removePlayer = (id) => {
+    setPlayers(players.filter(p => p.id !== id));
+  };
+
+  // 게임 시작
+  const startGame = () => {
+    if (players.length < 2) return;
+    
+    const newBalls = players.map((player, index) => ({
+      id: player.id,
+      name: player.name,
+      color: player.color,
+      x: CANVAS_WIDTH / 2 + (Math.random() - 0.5) * 20, // 중앙에서 약간 랜덤하게 시작
+      y: 50,
+      vx: (Math.random() - 0.5) * 1, // 아주 작은 초기 수평 속도
+      vy: 0,
+      finished: false,
+      slotNumber: null,
+      finishTime: null
+    }));
+    
+    setBalls(newBalls);
+    setGameState('playing');
+    setFinishedOrder([]);
+    setLoser(null);
+  };
+
+  // 게임 리셋
+  const resetGame = () => {
+    setGameState('setup');
+    setBalls([]);
+    setFinishedOrder([]);
+    setLoser(null);
+    if (animationRef.current) {
+      cancelAnimationFrame(animationRef.current);
+    }
+  };
+
+  // 핀과의 충돌 체크
+  const checkPinCollision = (ball, pin) => {
+    const dx = ball.x - pin.x;
+    const dy = ball.y - pin.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    return distance < BALL_RADIUS + pin.radius;
+  };
+
+  // 핀 충돌 처리
+  const handlePinCollision = (ball, pin) => {
+    const dx = ball.x - pin.x;
+    const dy = ball.y - pin.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    
+    if (distance < BALL_RADIUS + pin.radius) {
+      // 충돌 각도 계산
+      const angle = Math.atan2(dy, dx);
+      const targetX = pin.x + Math.cos(angle) * (BALL_RADIUS + pin.radius);
+      const targetY = pin.y + Math.sin(angle) * (BALL_RADIUS + pin.radius);
+      
+      // 공 위치 조정
+      ball.x = targetX;
+      ball.y = targetY;
+      
+      // 속도 반사
+      const normalX = Math.cos(angle);
+      const normalY = Math.sin(angle);
+      const dotProduct = ball.vx * normalX + ball.vy * normalY;
+      
+      ball.vx = (ball.vx - 2 * dotProduct * normalX) * BOUNCE;
+      ball.vy = (ball.vy - 2 * dotProduct * normalY) * BOUNCE;
+      
+      // 랜덤한 작은 힘 추가 (더 흥미로운 움직임을 위해)
+      ball.vx += (Math.random() - 0.5) * 0.5;
+    }
+  };
+
+  // 슬롯 체크
+  const checkSlotEntry = (ball) => {
+    if (ball.y > CANVAS_HEIGHT - 100 && !ball.finished) {
+      for (let i = 0; i < slots.length - 1; i++) {
+        const leftBound = slots[i].x + slots[i].width;
+        const rightBound = slots[i + 1].x;
+        
+        if (ball.x >= leftBound && ball.x < rightBound) {
+          ball.finished = true;
+          ball.slotNumber = slotNumbers[i];
+          ball.finishTime = Date.now();
+          return true;
+        }
+      }
+    }
+    return false;
+  };
+
+  // 게임 루프
+  useEffect(() => {
+    if (gameState !== 'playing') return;
+
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    let currentBalls = [...balls];
+
+    const animate = () => {
+      // 캔버스 클리어
+      ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+      
+      // 배경 그라데이션
+      const gradient = ctx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
+      gradient.addColorStop(0, '#1a1a2e');
+      gradient.addColorStop(0.5, '#16213e');
+      gradient.addColorStop(1, '#0f3460');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+      // 핀볼 핀들 그리기
+      ctx.fillStyle = '#FFD700';
+      ctx.strokeStyle = '#FFA500';
+      ctx.lineWidth = 2;
+      pins.forEach(pin => {
+        ctx.beginPath();
+        ctx.arc(pin.x, pin.y, pin.radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        
+        // 핀에 하이라이트 효과
+        ctx.beginPath();
+        ctx.arc(pin.x - 2, pin.y - 2, pin.radius * 0.4, 0, Math.PI * 2);
+        ctx.fillStyle = '#FFFF99';
+        ctx.fill();
+        ctx.fillStyle = '#FFD700';
+      });
+
+      // 슬롯 구분선 그리기
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 3;
+      for (let i = 0; i <= slots.length; i++) {
+        const x = 50 + i * 65;
+        ctx.beginPath();
+        ctx.moveTo(x, CANVAS_HEIGHT - 80);
+        ctx.lineTo(x, CANVAS_HEIGHT);
+        ctx.stroke();
+      }
+
+      // 슬롯 번호 표시
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 18px Arial';
+      ctx.textAlign = 'center';
+      slotNumbers.forEach((num, index) => {
+        const x = 50 + (index + 0.5) * 65;
+        const y = CANVAS_HEIGHT - 25;
+        
+        // 슬롯 배경
+        ctx.fillStyle = colors[num - 1] || '#666';
+        ctx.globalAlpha = 0.3;
+        ctx.fillRect(50 + index * 65, CANVAS_HEIGHT - 80, 65, 80);
+        ctx.globalAlpha = 1;
+        
+        // 번호 텍스트
+        ctx.fillStyle = '#fff';
+        ctx.fillText(num.toString(), x, y);
+      });
+
+      // 공들 업데이트
+      currentBalls = currentBalls.map(ball => {
+        if (ball.finished) return ball;
+        
+        const newBall = { ...ball };
+        
+        // 중력 적용
+        newBall.vy += GRAVITY;
+        
+        // 위치 업데이트
+        newBall.x += newBall.vx;
+        newBall.y += newBall.vy;
+        
+        // 마찰력
+        newBall.vx *= FRICTION;
+        
+        // 좌우 벽 충돌
+        if (newBall.x <= BALL_RADIUS || newBall.x >= CANVAS_WIDTH - BALL_RADIUS) {
+          newBall.vx *= -BOUNCE;
+          newBall.x = newBall.x <= BALL_RADIUS ? BALL_RADIUS : CANVAS_WIDTH - BALL_RADIUS;
+        }
+        
+        // 상단 벽 충돌
+        if (newBall.y <= BALL_RADIUS) {
+          newBall.vy *= -BOUNCE;
+          newBall.y = BALL_RADIUS;
+        }
+        
+        // 핀들과의 충돌 체크
+        pins.forEach(pin => {
+          if (checkPinCollision(newBall, pin)) {
+            handlePinCollision(newBall, pin);
+          }
+        });
+        
+        // 슬롯 진입 체크
+        if (checkSlotEntry(newBall)) {
+          setFinishedOrder(prev => {
+            if (!prev.find(p => p.id === newBall.id)) {
+              return [...prev, newBall];
+            }
+            return prev;
+          });
+        }
+        
+        // 바닥에서 멈춤
+        if (newBall.y >= CANVAS_HEIGHT - BALL_RADIUS) {
+          newBall.y = CANVAS_HEIGHT - BALL_RADIUS;
+          newBall.vy = 0;
+          newBall.vx *= 0.8; // 바닥에서 마찰
+        }
+        
+        return newBall;
+      });
+      
+      setBalls(currentBalls);
+      
+      // 공들 그리기
+      currentBalls.forEach(ball => {
+        // 공 그림자
+        ctx.beginPath();
+        ctx.arc(ball.x + 2, ball.y + 2, BALL_RADIUS, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(0,0,0,0.3)';
+        ctx.fill();
+        
+        // 공
+        ctx.beginPath();
+        ctx.arc(ball.x, ball.y, BALL_RADIUS, 0, Math.PI * 2);
+        ctx.fillStyle = ball.color;
+        ctx.fill();
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        
+        // 공에 하이라이트
+        ctx.beginPath();
+        ctx.arc(ball.x - 2, ball.y - 2, BALL_RADIUS * 0.4, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(255,255,255,0.6)';
+        ctx.fill();
+        
+        // 공 위에 이름 표시
+        if (ball.y < CANVAS_HEIGHT - 100) {
+          ctx.fillStyle = '#fff';
+          ctx.font = 'bold 10px Arial';
+          ctx.textAlign = 'center';
+          ctx.strokeStyle = '#000';
+          ctx.lineWidth = 3;
+          ctx.strokeText(ball.name, ball.x, ball.y - BALL_RADIUS - 8);
+          ctx.fillText(ball.name, ball.x, ball.y - BALL_RADIUS - 8);
+        }
+      });
+
+      // 슬롯에 들어간 공들 표시
+      currentBalls.filter(ball => ball.finished).forEach(ball => {
+        const slotIndex = slotNumbers.indexOf(ball.slotNumber);
+        if (slotIndex !== -1) {
+          const slotX = 50 + (slotIndex + 0.5) * 65;
+          const slotY = CANVAS_HEIGHT - 40;
+          
+          ctx.beginPath();
+          ctx.arc(slotX, slotY, BALL_RADIUS, 0, Math.PI * 2);
+          ctx.fillStyle = ball.color;
+          ctx.fill();
+          ctx.strokeStyle = '#fff';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+          
+          // 이름 표시
+          ctx.fillStyle = '#fff';
+          ctx.font = 'bold 8px Arial';
+          ctx.textAlign = 'center';
+          ctx.fillText(ball.name, slotX, slotY - 15);
+        }
+      });
+      
+      // 게임 종료 체크
+      const finishedCount = currentBalls.filter(ball => ball.finished).length;
+      if (finishedCount === players.length - 1 && players.length > 1) {
+        const lastBall = currentBalls.find(ball => !ball.finished);
+        if (lastBall || finishedCount === players.length) {
+          // 마지막 슬롯 결정
+          const usedSlots = currentBalls.filter(b => b.finished).map(b => b.slotNumber);
+          const availableSlots = slotNumbers.filter(num => !usedSlots.includes(num));
+          
+          if (lastBall && availableSlots.length > 0) {
+            lastBall.slotNumber = availableSlots[0];
+            lastBall.finished = true;
+            setFinishedOrder(prev => [...prev, lastBall]);
+          }
+          
+          // 꼴찌 결정 (가장 큰 번호)
+          const allFinished = currentBalls.filter(b => b.finished);
+          const maxSlot = Math.max(...allFinished.map(b => b.slotNumber));
+          const loserBall = allFinished.find(b => b.slotNumber === maxSlot);
+          
+          if (loserBall) {
+            setLoser(loserBall);
+            setGameState('finished');
+          }
+          return;
+        }
+      }
+      
+      if (gameState === 'playing') {
+        animationRef.current = requestAnimationFrame(animate);
+      }
+    };
+    
+    if (currentBalls.length > 0) {
+      animate();
+    }
+    
+    return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
+    };
+  }, [gameState, players.length]);
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 p-4">
+      <div className="max-w-6xl mx-auto">
+        <h1 className="text-4xl font-bold text-white text-center mb-8">
+          🎯 핀볼 뽑기 내기 게임
+        </h1>
+        
+        {/* 플레이어 설정 */}
+        <div className="bg-white/10 backdrop-blur-md rounded-lg p-6 mb-6">
+          <h2 className="text-2xl font-semibold text-white mb-4">플레이어 설정 (최대 10명)</h2>
+          
+          <div className="flex gap-4 mb-4">
+            <input
+              type="text"
+              value={newPlayerName}
+              onChange={(e) => setNewPlayerName(e.target.value)}
+              placeholder="플레이어 이름 입력"
+              className="flex-1 px-4 py-2 rounded-lg bg-white/20 text-white placeholder-white/60 border border-white/30"
+              maxLength={10}
+              onKeyPress={(e) => e.key === 'Enter' && addPlayer()}
+            />
+            <button
+              onClick={addPlayer}
+              disabled={!newPlayerName.trim() || players.length >= 10}
+              className="px-6 py-2 bg-green-500 hover:bg-green-600 disabled:bg-gray-500 text-white rounded-lg flex items-center gap-2 transition-colors"
+            >
+              <Plus size={20} />
+              추가
+            </button>
+          </div>
+          
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+            {players.map((player, index) => (
+              <div
+                key={player.id}
+                className="flex items-center justify-between bg-white/20 rounded-lg p-3"
+                style={{ borderLeft: `4px solid ${player.color}` }}
+              >
+                <span className="text-white font-medium">{player.name}</span>
+                <button
+                  onClick={() => removePlayer(player.id)}
+                  className="text-red-400 hover:text-red-300 transition-colors"
+                >
+                  <Trash2 size={16} />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* 게임 컨트롤 */}
+        <div className="flex justify-center gap-4 mb-6">
+          {gameState === 'setup' && (
+            <button
+              onClick={startGame}
+              disabled={players.length < 2}
+              className="px-8 py-3 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-500 text-white rounded-lg flex items-center gap-2 text-lg font-semibold transition-colors"
+            >
+              <Play size={24} />
+              핀볼 뽑기 시작!
+            </button>
+          )}
+          
+          {(gameState === 'playing' || gameState === 'finished') && (
+            <button
+              onClick={resetGame}
+              className="px-8 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-lg flex items-center gap-2 text-lg font-semibold transition-colors"
+            >
+              <RotateCcw size={24} />
+              다시 시작
+            </button>
+          )}
+        </div>
+
+        {/* 게임 캔버스 */}
+        <div className="bg-white/10 backdrop-blur-md rounded-lg p-4 mb-6">
+          <canvas
+            ref={canvasRef}
+            width={CANVAS_WIDTH}
+            height={CANVAS_HEIGHT}
+            className="w-full border border-white/30 rounded-lg"
+            style={{ maxWidth: '100%', height: 'auto' }}
+          />
+        </div>
+
+        {/* 게임 결과 */}
+        {gameState === 'finished' && loser && (
+          <div className="bg-red-500/20 backdrop-blur-md rounded-lg p-6 mb-6 border border-red-500/30">
+            <div className="text-center">
+              <Trophy className="mx-auto mb-4 text-yellow-400" size={48} />
+              <h2 className="text-2xl font-bold text-white mb-2">🎯 핀볼 뽑기 완료!</h2>
+              <p className="text-xl text-red-300 mb-4">
+                <span className="font-bold" style={{ color: loser.color }}>
+                  {loser.name}
+                </span>님이 {loser.slotNumber}번에 들어가서 꼴찌! 🎯
+              </p>
+              
+              <div className="text-white">
+                <h3 className="text-lg font-semibold mb-2">뽑기 결과:</h3>
+                <div className="flex flex-wrap justify-center gap-2">
+                  {finishedOrder
+                    .sort((a, b) => a.slotNumber - b.slotNumber)
+                    .map((player) => (
+                    <span
+                      key={player.id}
+                      className="px-3 py-1 rounded-full text-sm font-medium"
+                      style={{ backgroundColor: player.color, color: '#fff' }}
+                    >
+                      {player.slotNumber}번: {player.name}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 게임 설명 */}
+        <div className="bg-white/10 backdrop-blur-md rounded-lg p-6">
+          <h3 className="text-xl font-semibold text-white mb-3">🎯 핀볼 뽑기 게임 규칙</h3>
+          <ul className="text-white/80 space-y-2">
+            <li>• 2~10명의 플레이어가 참여할 수 있습니다</li>
+            <li>• 각 플레이어의 공이 위에서 떨어져 핀볼 핀들에 튕깁니다</li>
+            <li>• 공들은 예측할 수 없는 경로로 아래 슬롯(1~10번)에 들어갑니다</li>
+            <li>• 가장 큰 번호 슬롯에 들어간 사람이 꼴찌입니다</li>
+            <li>• 완전히 랜덤한 물리 법칙으로 공정한 내기가 가능합니다!</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default PinballLotteryGame;
